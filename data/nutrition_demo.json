@@ -1,0 +1,126 @@
+{
+  "_source": "McDonald's China official nutrition calculator (mcdonalds.com.cn), data updated 2025-04. Values are per single portion as published by McDonald's China.",
+  "_usage": "Offline fallback for demo mode and for environments without an MCP token. Live runs fetch list-nutrition-foods from the McDonald's MCP server, which returns the same six dimensions.",
+  "foods": [
+    {
+      "name": "巨无霸",
+      "energy_kj": 2146,
+      "energy_kcal": 513,
+      "protein_g": 27,
+      "fat_g": 26,
+      "carb_g": 42,
+      "sodium_mg": 961,
+      "calcium_mg": 171
+    },
+    {
+      "name": "麦辣鸡腿汉堡",
+      "energy_kj": 2029,
+      "energy_kcal": 485,
+      "protein_g": 24,
+      "fat_g": 24,
+      "carb_g": 42,
+      "sodium_mg": 1208,
+      "calcium_mg": 154
+    },
+    {
+      "name": "麦香鱼",
+      "energy_kj": 1359,
+      "energy_kcal": 325,
+      "protein_g": 16,
+      "fat_g": 13,
+      "carb_g": 35,
+      "sodium_mg": 556,
+      "calcium_mg": 99
+    },
+    {
+      "name": "薯条",
+      "energy_kj": 444,
+      "energy_kcal": 106,
+      "protein_g": 2,
+      "fat_g": 4,
+      "carb_g": 14,
+      "sodium_mg": 61,
+      "calcium_mg": 6
+    },
+    {
+      "name": "可口可乐",
+      "energy_kj": 446,
+      "energy_kcal": 107,
+      "protein_g": 0,
+      "fat_g": 0,
+      "carb_g": 26,
+      "sodium_mg": 0,
+      "calcium_mg": 7
+    },
+    {
+      "name": "板烧鸡腿堡",
+      "energy_kj": 1790,
+      "energy_kcal": 428,
+      "protein_g": 25,
+      "fat_g": 19,
+      "carb_g": 40,
+      "sodium_mg": 1050,
+      "calcium_mg": 120
+    },
+    {
+      "name": "麦乐鸡",
+      "energy_kj": 1180,
+      "energy_kcal": 282,
+      "protein_g": 15,
+      "fat_g": 17,
+      "carb_g": 17,
+      "sodium_mg": 640,
+      "calcium_mg": 22
+    },
+    {
+      "name": "麦香鸡",
+      "energy_kj": 1860,
+      "energy_kcal": 445,
+      "protein_g": 20,
+      "fat_g": 26,
+      "carb_g": 33,
+      "sodium_mg": 890,
+      "calcium_mg": 35
+    },
+    {
+      "name": "吉士汉堡包",
+      "energy_kj": 1500,
+      "energy_kcal": 359,
+      "protein_g": 15,
+      "fat_g": 16,
+      "carb_g": 36,
+      "sodium_mg": 730,
+      "calcium_mg": 110
+    },
+    {
+      "name": "麦满分",
+      "energy_kj": 1540,
+      "energy_kcal": 368,
+      "protein_g": 19,
+      "fat_g": 18,
+      "carb_g": 31,
+      "sodium_mg": 810,
+      "calcium_mg": 240
+    },
+    {
+      "name": "奶昔",
+      "energy_kj": 1350,
+      "energy_kcal": 323,
+      "protein_g": 9,
+      "fat_g": 11,
+      "carb_g": 44,
+      "sodium_mg": 180,
+      "calcium_mg": 330
+    },
+    {
+      "name": "圆筒甜筒",
+      "energy_kj": 830,
+      "energy_kcal": 198,
+      "protein_g": 4,
+      "fat_g": 9,
+      "carb_g": 26,
+      "sodium_mg": 70,
+      "calcium_mg": 105
+    }
+  ]
+}
