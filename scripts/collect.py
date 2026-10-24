@@ -10,7 +10,7 @@ Writes:
   data/nutrition.json  -> {"source": "live|demo", "foods": [...]}
 
 Usage:
-  export MCD_MCP_TOKEN=xxx
+  export MDN_MCP_KEY=xxx      # or MCD_MCP_TOKEN=xxx
   python3 collect.py
   python3 collect.py --demo
 """

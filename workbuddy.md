@@ -110,4 +110,4 @@ curl -X POST https://mcp.mcd.cn -H "Authorization: Bearer <无效token>" ...
 
 ## 六、开发者声明
 
-本项目全部代码、文档与设计由参赛者使用腾讯 WorkBuddy 智能体独立开发完成。项目中未包含任何真实 Token、密钥、账号凭证或他人个人信息；`mcp-config.example.json` 仅使用环境变量占位符 `${MCD_MCP_TOKEN}`。
+本项目全部代码、文档与设计由参赛者使用腾讯 WorkBuddy 智能体独立开发完成。项目中未包含任何真实 Token、密钥、账号凭证或他人个人信息；`mcp-config.example.json` 仅使用环境变量占位符 `${MDN_MCP_KEY}`。

@@ -8,7 +8,7 @@ Protocol: MCP Streamable HTTP transport.
 Rate limit: 600 requests/minute per token (HTTP 429 on exceed).
 
 Usage:
-    export MCD_MCP_TOKEN=xxx
+    export MDN_MCP_KEY=xxx      # or MCD_MCP_TOKEN=xxx
     python3 mcp_client.py tools                      # list all tools
     python3 mcp_client.py call list-nutrition-foods '{}'
 """
@@ -23,6 +23,22 @@ MCP_URL = os.environ.get("MCD_MCP_URL", "https://mcp.mcd.cn")
 PROTOCOL_VERSION = "2025-06-18"
 CLIENT_INFO = {"name": "mcd-nutrition-academy", "version": "1.0.0"}
 
+# Token lookup order: explicit argument > MDN_MCP_KEY > MCD_MCP_TOKEN.
+# MDN_MCP_KEY is the name used by the official MCP console; MCD_MCP_TOKEN is
+# kept as an alias so either one works.
+TOKEN_ENV_NAMES = ("MDN_MCP_KEY", "MCD_MCP_TOKEN")
+
+
+def resolve_token(explicit=None):
+    """Return the MCP token from the argument or the environment."""
+    if explicit:
+        return explicit.strip()
+    for name in TOKEN_ENV_NAMES:
+        value = os.environ.get(name)
+        if value and value.strip():
+            return value.strip()
+    return None
+
 
 class McpError(RuntimeError):
     pass
@@ -32,10 +48,11 @@ class McpClient:
     """Minimal MCP Streamable HTTP client. No third-party dependency."""
 
     def __init__(self, token=None, url=None, timeout=30):
-        self.token = token or os.environ.get("MCD_MCP_TOKEN")
+        self.token = resolve_token(token)
         if not self.token:
             raise McpError(
-                "missing MCP token: set MCD_MCP_TOKEN env var or pass token="
+                "missing MCP token: set %s env var or pass token="
+                % " or ".join(TOKEN_ENV_NAMES)
             )
         self.url = url or MCP_URL
         self.timeout = timeout

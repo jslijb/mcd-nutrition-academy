@@ -1,6 +1,6 @@
 {
-  "_source": "McDonald's China official nutrition calculator (mcdonalds.com.cn), data updated 2025-04. Values are per single portion as published by McDonald's China.",
-  "_usage": "Offline fallback for demo mode and for environments without an MCP token. Live runs fetch list-nutrition-foods from the McDonald's MCP server, which returns the same six dimensions.",
+  "_source": "McDonald's China official nutrition calculator (mcdonalds.com.cn) plus portion-variant rows fetched from the live McDonald's MCP list-nutrition-foods tool. Values are per single portion.",
+  "_usage": "Offline fallback for demo mode and for environments without an MCP token. The portion-variant rows are included so the comparison-based lessons still work without a token. Live runs fetch the full table from MCP.",
   "foods": [
     {
       "name": "巨无霸",
@@ -121,6 +121,106 @@
       "carb_g": 26,
       "sodium_mg": 70,
       "calcium_mg": 105
+    },
+    {
+      "name": "迷你薯条",
+      "energy_kj": 444.0,
+      "energy_kcal": 106.0,
+      "protein_g": 2.0,
+      "fat_g": 4.0,
+      "carb_g": 14.0,
+      "sodium_mg": 61.0,
+      "calcium_mg": 6.0
+    },
+    {
+      "name": "大薯条",
+      "energy_kj": 1587.0,
+      "energy_kcal": 379.0,
+      "protein_g": 6.0,
+      "fat_g": 16.0,
+      "carb_g": 50.0,
+      "sodium_mg": 216.0,
+      "calcium_mg": 23.0
+    },
+    {
+      "name": "可乐小杯",
+      "energy_kj": 446.0,
+      "energy_kcal": 107.0,
+      "protein_g": 0.0,
+      "fat_g": 0.0,
+      "carb_g": 26.0,
+      "sodium_mg": 0.0,
+      "calcium_mg": 7.0
+    },
+    {
+      "name": "可乐大杯",
+      "energy_kj": 936.0,
+      "energy_kcal": 224.0,
+      "protein_g": 0.0,
+      "fat_g": 0.0,
+      "carb_g": 55.0,
+      "sodium_mg": 0.0,
+      "calcium_mg": 15.0
+    },
+    {
+      "name": "芝士安格斯厚牛堡",
+      "energy_kj": 2914.0,
+      "energy_kcal": 696.0,
+      "protein_g": 32.0,
+      "fat_g": 44.0,
+      "carb_g": 43.0,
+      "sodium_mg": 897.0,
+      "calcium_mg": 150.0
+    },
+    {
+      "name": "芝士双层安格斯厚牛堡",
+      "energy_kj": 4195.0,
+      "energy_kcal": 1003.0,
+      "protein_g": 58.0,
+      "fat_g": 65.0,
+      "carb_g": 46.0,
+      "sodium_mg": 1373.0,
+      "calcium_mg": 251.0
+    },
+    {
+      "name": "原味板烧鸡腿麦满分",
+      "energy_kj": 1029.0,
+      "energy_kcal": 246.0,
+      "protein_g": 15.0,
+      "fat_g": 9.0,
+      "carb_g": 25.0,
+      "sodium_mg": 611.0,
+      "calcium_mg": 133.0
+    },
+    {
+      "name": "双层原味板烧鸡腿麦满分",
+      "energy_kj": 1486.0,
+      "energy_kcal": 355.0,
+      "protein_g": 23.0,
+      "fat_g": 17.0,
+      "carb_g": 27.0,
+      "sodium_mg": 984.0,
+      "calcium_mg": 138.0
+    },
+    {
+      "name": "冰燕麦奶小杯",
+      "energy_kj": 547.0,
+      "energy_kcal": 131.0,
+      "protein_g": 3.0,
+      "fat_g": 5.0,
+      "carb_g": 17.0,
+      "sodium_mg": 95.0,
+      "calcium_mg": 288.0
+    },
+    {
+      "name": "冰燕麦奶大杯",
+      "energy_kj": 1000.0,
+      "energy_kcal": 239.0,
+      "protein_g": 5.0,
+      "fat_g": 9.0,
+      "carb_g": 32.0,
+      "sodium_mg": 174.0,
+      "calcium_mg": 525.0
     }
   ]
 }

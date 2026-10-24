@@ -10,7 +10,7 @@
 | Endpoint | `https://mcp.mcd.cn` |
 | Transport | Streamable HTTP（`type: streamablehttp`） |
 | 协议版本 | `2025-06-18` |
-| 鉴权 | `Authorization: Bearer <MCD_MCP_TOKEN>` |
+| 鉴权 | `Authorization: Bearer <MDN_MCP_KEY>` |
 | 限流 | 每个 Token 600 次/分钟，超出返回 HTTP 429 |
 | 配置文件 | `mcp-config.example.json`（仅环境变量占位符，不含真实凭证） |
 
@@ -42,8 +42,8 @@ scripts/collect.py
         │
         ├─ McpClient.initialize()          # MCP 握手
         ├─ call_tool("list-nutrition-foods")
-        │     └─ data 为文本表格，表头：
-        │        productName,nutritionDescription,energyKj,energyKcal,
+        │     └─ 三层结构：说明散文 -> JSON 包裹 -> "[160]{表头}:" + CSV 行
+        │        表头：productName,nutritionDescription,energyKj,energyKcal,
         │        protein,fat,carbohydrate,sodium,calcium
         ├─ call_tool("order-list")          # 可选，失败则跳过
         └─ call_tool("query-my-account")    # 可选，失败则跳过
@@ -54,24 +54,60 @@ data/nutrition.json  {source: "live"|"demo", foods:[...], orders:[...], points:{
         ▼
 scripts/build_course.py
         │
-        ├─ nutrition_kb.parse_nutrition_csv()   # 表格 → 结构化记录
+        ├─ nutrition_kb.parse_nutrition_csv()   # 拆三层结构 → 结构化记录（按表头名映射）
+        ├─ nutrition_kb.merge_foods()            # 实时优先 + 按名去重
         ├─ nutrition_kb.food_profile()           # 每项对全天参考量的占比
+        ├─ nutrition_kb.find_comparisons()       # 发现"同物不同份量"的对照组
         ├─ nutrition_kb.radar_points()           # 六轴雷达顶点
         ├─ nutrition_kb.teach_points()           # 知识点推导
-        ├─ build_quiz()                          # 从真实数据自动出题
+        ├─ build_quiz()                          # 用对照组建题（每课避开已用过的对照组）
         ├─ build_lesson_page()                   # -> out/lesson.html
         └─ build_certificate()                   # -> out/certificate.html (+ .png)
 ```
 
 ## 实测返回结构（2026-10-24 于 https://mcp.mcd.cn 验证）
 
-`list-nutrition-foods` 的 `data` 是**文本表格**，非 JSON：
+`list-nutrition-foods` 返回的**文本内容是带说明的外层 JSON 包裹**，不是裸表格。真实返回有三层：
+
+```
+# API Response Information
+...（服务端自动生成的字段说明散文）...
+
+## Original Response
+
+{"success":true,"code":200,"message":"请求成功","datetime":"2026-10-24 16:59:01",
+ "traceId":"...","data":"[160]{productName,nutritionDescription,energyKj,energyKcal,protein,fat,carbohydrate,sodium,calcium}:\n  猪柳麦满分,null,1288,308,16,16,24,781,213\n  ..."}
+```
+
+拆解：
+
+| 层 | 位置 | 内容 |
+|---|---|---|
+| 1 | 文本开头 | 服务端生成的字段说明散文，解析时需跳过 |
+| 2 | `## Original Response` 之后 | 一个 JSON 对象，`success` / `code` / `message` / `datetime` / `traceId` / `data` 六个键 |
+| 3 | `data` 字段（本身是字符串） | `[160]{表头}:` + 换行分隔的 CSV 行，`[160]` 是声明的条目数 |
+
+第 3 层的表头固定为：
 
 ```
 productName,nutritionDescription,energyKj,energyKcal,protein,fat,carbohydrate,sodium,calcium
 ```
 
-解析时按"数值列"匹配，容忍额外的描述列或末尾单位列；表头行与说明行自动跳过。
+实测返回 **160 个餐品**，每行 9 列（`nutritionDescription` 当前均为 `null`）。
+
+### 解析策略
+
+`scripts/nutrition_kb.py` 的处理顺序：
+
+1. `unwrap_mcp_payload()` 用 `json.JSONDecoder().raw_decode()` 从 `## Original Response` 后截出 JSON 对象，取出 `data` 字符串；
+2. `re.match(r"\s*\[\d+\]\s*\{([^}]*)\}\s*:\s*(.*)")` 拆出表头列表与表体；
+3. `_rows_from_table()` 按**表头名称**逐列取值（`rec[header[i]] = cells[i]`），**不依赖列顺序**；
+4. `_record_from_mapping()` 把表头名映射到内部字段（`productName→name`、`energyKcal→energy_kcal` 等）；
+5. 若结构不符合预期，回退到通用 CSV 解析（供本地 mock 与旧格式使用）。
+
+> **为什么按名称而不是按位置取值**：按位置解析时，若服务端多返回一列描述信息，后续所有列会整体错位——实测中曾出现「钙」取到下一行「能量」值的情况，且不会报错，只会静默给出错误数字。按表头名映射可彻底消除该风险。
+
+另外，实时数据中同一餐品可能重复出现（如「小杯玉米杯」「纯牛奶（盒装）」各出现 2 次），入库前按名称去重，保留首条。
 
 `order-list` 返回路径为 `data.list[]`：
 

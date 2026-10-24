@@ -26,12 +26,12 @@ ROOT = os.path.dirname(HERE)
 # male 18-49y light activity, used as the "one meal benchmark" for teaching.
 # These are reference values for education, NOT medical advice.
 REFERENCE_INTAKE = {
-    "energy_kcal": {"value": 2250, "unit": "kcal", "label": "每日能量"},
-    "protein_g": {"value": 65, "unit": "g", "label": "每日蛋白质"},
-    "fat_g": {"value": 60, "unit": "g", "label": "每日脂肪"},
-    "carb_g": {"value": 275, "unit": "g", "label": "每日碳水"},
-    "sodium_mg": {"value": 1500, "unit": "mg", "label": "每日钠"},
-    "calcium_mg": {"value": 800, "unit": "mg", "label": "每日钙"},
+    "energy_kcal": {"value": 2250, "unit": "kcal", "label": "每日能量", "short": "能量"},
+    "protein_g": {"value": 65, "unit": "g", "label": "每日蛋白质", "short": "蛋白质"},
+    "fat_g": {"value": 60, "unit": "g", "label": "每日脂肪", "short": "脂肪"},
+    "carb_g": {"value": 275, "unit": "g", "label": "每日碳水", "short": "碳水"},
+    "sodium_mg": {"value": 1500, "unit": "mg", "label": "每日钠", "short": "钠"},
+    "calcium_mg": {"value": 800, "unit": "mg", "label": "每日钙", "short": "钙"},
 }
 
 # Per-meal share: assume 3 meals a day -> each meal is ~1/3 of daily intake.
@@ -102,13 +102,125 @@ def _to_float(raw):
     return float(m.group()) if m else 0.0
 
 
-def parse_nutrition_csv(text):
-    """Parse the `list-nutrition-foods` text table into records.
+def unwrap_mcp_payload(text):
+    """Unwrap the `list-nutrition-foods` response into the raw table string.
 
-    Real header observed on 2026-10:
-      productName,nutritionDescription,energyKj,energyKcal,protein,fat,
-      carbohydrate,sodium,calcium
+    The live MCP tool returns a text block like:
+
+        # API Response Information
+        ... prose describing the fields ...
+        ## Original Response
+        {"success":true,"code":200,...,"data":"[160]{productName,...}:\\n  猪柳麦满分,null,..."}
+
+    So the actual table lives in `data` of that JSON object, itself a string of
+    the form `[<count>]{<header>}:` followed by newline-separated CSV rows.
+
+    Returns (table_text, header_list) or (None, None) when the shape is
+    unexpected -- callers then fall back to the plain-text table parser.
     """
+    if not isinstance(text, str):
+        return None, None
+
+    # Find the JSON object that follows the "Original Response" marker.
+    marker = text.rfind("## Original Response")
+    tail = text[marker:] if marker >= 0 else text
+    start = tail.find("{")
+    if start < 0:
+        return None, None
+    try:
+        obj, _ = json.JSONDecoder().raw_decode(tail[start:])
+    except ValueError:
+        return None, None
+    if not isinstance(obj, dict):
+        return None, None
+
+    data = obj.get("data")
+    if isinstance(data, dict):
+        # Some responses hand back an already-structured list.
+        return None, None
+    if not isinstance(data, str):
+        return None, None
+
+    # data looks like "[160]{col1,col2,...}:\n  row1\n  row2"
+    m = re.match(r"\s*\[\d+\]\s*\{([^}]*)\}\s*:\s*(.*)", data, re.S)
+    if not m:
+        return None, None
+    header = [h.strip() for h in m.group(1).split(",") if h.strip()]
+    body = m.group(2)
+    return body, header
+
+
+def _rows_from_table(body, header):
+    """Split the table body into rows aligned to `header` by NAME, not position."""
+    rows = []
+    for line in body.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        cells = [c.strip() for c in line.split(",")]
+        if len(cells) < len(header):
+            continue
+        if cells[0].lower() == "productname":
+            continue
+        rec = {}
+        for idx, col in enumerate(header):
+            rec[col] = cells[idx]
+        if not rec.get("productName"):
+            continue
+        rows.append(rec)
+    return rows
+
+
+def _record_from_mapping(rec):
+    """Map a header-keyed record to the internal schema.
+
+    Column names come from the API header, so this never depends on the
+    column order -- that is what caused silent value shifts before.
+    """
+    def num(*keys):
+        for k in keys:
+            if k in rec:
+                v = _to_float(rec[k])
+                if v or rec[k] in ("0", "0.0"):
+                    return v
+        return 0.0
+
+    name = str(rec.get("productName", "")).strip()
+    if not name:
+        return None
+
+    energy_kj = num("energyKj")
+    energy_kcal = num("energyKcal")
+    return {
+        "name": name,
+        "energy_kj": energy_kj,
+        "energy_kcal": energy_kcal or (energy_kj / 4.184),
+        "protein_g": num("protein"),
+        "fat_g": num("fat"),
+        "carb_g": num("carbohydrate"),
+        "sodium_mg": num("sodium"),
+        "calcium_mg": num("calcium"),
+    }
+
+
+def parse_nutrition_csv(text):
+    """Parse the `list-nutrition-foods` payload into normalised records.
+
+    Handles two shapes:
+      1. the live MCP envelope (JSON wrapper -> `[N]{header}:` table)
+      2. a plain `col,col,...` table (used by the offline mock in tests)
+    """
+    body, header = unwrap_mcp_payload(text)
+    if body is not None and header:
+        rows = []
+        for rec in _rows_from_table(body, header):
+            r = _record_from_mapping(rec)
+            if r:
+                rows.append(r)
+        if rows:
+            return rows
+
+    # Fallback: plain table with a header line.
     rows = []
     reader = csv.reader(io.StringIO(text))
     for raw in reader:
@@ -117,10 +229,6 @@ def parse_nutrition_csv(text):
         name = (raw[0] or "").strip()
         if not name or name.lower().startswith("productname"):
             continue
-        if name.startswith("数据") or name.startswith("营养") and len(raw) < 5:
-            continue
-        # find the numeric columns by position, tolerant to an extra description
-        # column or a trailing unit column
         nums = []
         for cell in raw[1:]:
             s = (cell or "").strip()
@@ -152,12 +260,19 @@ def load_demo_foods():
 
 
 def merge_foods(live, demo):
-    """Live MCP data wins; demo rows fill in gaps for teaching coverage."""
-    seen = {f["name"] for f in live}
-    merged = list(live)
-    for d in demo:
-        if d["name"] not in seen:
-            merged.append(d)
+    """Live MCP data wins; demo rows fill gaps for teaching coverage.
+
+    De-duplicates by name (the live table can contain the same product twice,
+    e.g. different stores), keeping the first occurrence.
+    """
+    merged = []
+    seen = set()
+    for f in list(live) + list(demo):
+        name = f.get("name")
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        merged.append(f)
     return merged
 
 
@@ -271,6 +386,74 @@ def food_index(foods):
     for f in foods:
         idx[f["name"]] = f
     return idx
+
+
+# ------------------------------------------------------------------ comparisons
+# Prefixes/suffixes that mark two menu items as "the same thing, different
+# size or version". The live table is full of these pairs, and they are the
+# best teaching material available: same product, one variable changed.
+_VARIANT_MARKERS = [
+    "迷你", "小", "中", "大", "双层", "原味",
+    "大杯", "中杯", "小杯", "5块", "10块", "无糖",
+]
+
+
+def _variant_key(name):
+    """Strip variant markers to group products that differ only in size/tier."""
+    key = name
+    for m in _VARIANT_MARKERS:
+        key = key.replace(m, "")
+    return key.strip()
+
+
+def find_comparisons(foods, dim_key, min_gap_pct=8.0):
+    """Find same-product pairs that differ meaningfully on one dimension.
+
+    Returns a list of dicts sorted by how large the difference is, biggest
+    first. Each entry teaches something concrete, e.g. "大薯条比小薯条多
+    169 kcal" -- which is far more convincing than an abstract rule.
+    """
+    groups = {}
+    for f in foods:
+        key = _variant_key(f["name"])
+        groups.setdefault(key, []).append(f)
+
+    pairs = []
+    for key, items in groups.items():
+        if len(items) < 2:
+            continue
+        items = sorted(items, key=lambda f: f.get(dim_key) or 0)
+        low, high = items[0], items[-1]
+        lv = low.get(dim_key) or 0
+        hv = high.get(dim_key) or 0
+        if hv <= lv:
+            continue
+        ref = REFERENCE_INTAKE[dim_key]["value"]
+        gap_pct = (hv - lv) / ref * 100
+        if gap_pct < min_gap_pct:
+            continue
+        pairs.append(
+            {
+                "key": key,
+                "low": low,
+                "high": high,
+                "low_value": lv,
+                "high_value": hv,
+                "diff": hv - lv,
+                "gap_pct_of_day": gap_pct,
+            }
+        )
+    pairs.sort(key=lambda p: p["gap_pct_of_day"], reverse=True)
+    return pairs
+
+
+def find_extremes(foods, dim_key, top_n=1):
+    """Foods with the highest / lowest value on a dimension."""
+    pool = [f for f in foods if (f.get(dim_key) or 0) > 0]
+    if not pool:
+        return None, None
+    ranked = sorted(pool, key=lambda f: f[dim_key], reverse=True)
+    return ranked[0], ranked[-1]
 
 
 def find_food(foods, query):

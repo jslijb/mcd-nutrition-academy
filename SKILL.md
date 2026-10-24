@@ -25,7 +25,7 @@ agent_created: true
 ### 一、采集营养数据
 
 ```bash
-export MCD_MCP_TOKEN=<用户的token>
+export MDN_MCP_KEY=<用户的token>
 python3 scripts/collect.py           # -> data/nutrition.json
 ```
 

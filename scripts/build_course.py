@@ -37,49 +37,49 @@ CURRICULUM = [
     {
         "id": "energy",
         "dimension": "energy_kcal",
-        "title": "第一课 · 能量：一天的'电费'账单",
-        "concept": "能量不是好坏，是花多少的问题。一份餐品的能量约等于 4.184 千焦里的千卡部分，"
-        "把它放在'一天三顿'的分母上看，才有意义。",
-        "teach": "看能量先看两个数：这一份多少千卡，以及它占你一餐参考量的百分之多少。",
+        "title": "第一课 · 能量：一份套餐能装下多少电费",
+        "concept": "能量不是好坏，是花多少的问题。同一份食物，份量不同，能量能差出一整顿正餐。"
+        "把千卡放在'一天 2250 千卡'这个分母上看，才有意义。",
+        "teach": "本课用真实菜单里的两组对照做实验：只改份量，其他不变，看能量怎么变。",
     },
     {
         "id": "protein",
         "dimension": "protein_g",
         "title": "第二课 · 蛋白质：身体的建材",
-        "concept": "蛋白质是长身体、修身体的原材料。判断一份餐品蛋白质够不够，"
-        "看它占总能量的比例，比只看绝对克数更有意义。",
-        "teach": "同样 500 千卡，蛋白质占比高的那份，吃完更抗饿。",
+        "concept": "蛋白质是长身体、修身体的原材料。多一层肉饼，多的不只是口感，"
+        "更是实实在在的蛋白质——这一点在真实数据里非常明显。",
+        "teach": "看蛋白质别只看绝对克数，同时看它占总能量的比例：占比高的那份更抗饿。",
     },
     {
         "id": "fat",
         "dimension": "fat_g",
-        "title": "第三课 · 脂肪：能量储备与口感",
-        "concept": "脂肪密度高意味着同样体积的热量更多。它同时决定口感，"
-        "所以'减脂'不等于'零脂肪'。",
-        "teach": "算脂肪占比：脂肪克数 × 9 千焦，再除以总能量，看它在能量结构里占几成。",
+        "title": "第三课 · 脂肪：能量密度与口感",
+        "concept": "脂肪的能量密度是蛋白和碳水的一倍多。同样体积，脂肪多的那份热量更高。"
+        "但脂肪也决定口感，所以'减脂'从来不等于'零脂肪'。",
+        "teach": "算脂肪占比：脂肪克数 × 9 千焦，除以总能量，看它在能量结构里占几成。",
     },
     {
         "id": "carb",
         "dimension": "carb_g",
         "title": "第四课 · 碳水：最直接的燃料",
         "concept": "碳水是身体最省事的燃料。甜饮的碳水几乎全是糖，"
-        "这是'看不见'的一类碳水。",
-        "teach": "把一份餐品的碳水和你一天需要的量放在一起看，比看'克'更直观。",
+        "而且喝的时候完全尝不出——这是最'隐形'的一类碳水。",
+        "teach": "把碳水和你一天需要的 275 克放在一起看，比单看'克'直观得多。",
     },
     {
         "id": "sodium",
         "dimension": "sodium_mg",
         "title": "第五课 · 钠：藏在酱料里的那一项",
         "concept": "钠是麦当劳餐品里最容易超标的营养素。它主要来自酱汁、腌渍和面包，"
-        "吃的时候常常完全尝不出来。",
-        "teach": "钠是'限'的维度：一餐超过参考量的三分之一就该留意了。",
+        "吃的时候常常完全尝不出来。多一层肉，酱也更多，钠也跟着涨。",
+        "teach": "钠是'限'的维度：一餐超过全天参考量的三分之一就该留意了。",
     },
     {
         "id": "calcium",
         "dimension": "calcium_mg",
         "title": "第六课 · 钙：骨头和牙齿的原料",
         "concept": "钙是少数'越多越好'的营养素，在常见餐品里却常常缺位。"
-        "奶昔、甜筒的钙含量反而比多数汉堡高。",
+        "有意思的是：奶类饮品、甜筒的钙含量，反而比多数汉堡高得多。",
         "teach": "钙是'需'的维度：看一餐能贡献多少，而不是看它有没有超标。",
     },
 ]
@@ -92,19 +92,73 @@ def load_foods():
         return json.load(f)["foods"]
 
 
-def build_quiz(foods, dim_key):
+def build_quiz(foods, dim_key, avoid_keys=None):
     """Build a data-derived quiz for one dimension.
 
-    Question shape: "以下哪份餐品的 <dimension> 含量最高？" with 4 real options.
-    Correct answer and distractor ordering are derived from the live table, so
-    the quiz can never drift away from the data it teaches.
+    Two question shapes, both derived from the live table:
+
+    1. "same product, different size" -- the most convincing form, because it
+       isolates one variable. Uses two real items from the menu.
+    2. "which one has the most X" -- the fallback when no comparable pair
+       exists for that dimension.
+
+    `avoid_keys` holds product groups already used by earlier lessons, so
+    consecutive lessons do not all show the same comparison.
+
+    Correct answer and options always come from real rows, so the quiz can
+    never drift away from the data it teaches.
     """
+    avoid_keys = avoid_keys or set()
+
+    # --- shape 1: a real A/B comparison ---------------------------------
+    pairs = kb.find_comparisons(foods, dim_key, min_gap_pct=6.0)
+    if pairs:
+        p = next((x for x in pairs if x["key"] not in avoid_keys), pairs[0])
+        low, high = p["low"], p["high"]
+        dim = kb.REFERENCE_INTAKE[dim_key]
+        question = "%s 和 %s 只差一个变量，%s差多少？" % (
+            low["name"],
+            high["name"],
+            dim.get("short", dim["label"]),
+        )
+        options = [
+            "%s（%s）" % (high["name"], _fmt(p["high_value"], dim["unit"])),
+            "%s（%s）" % (low["name"], _fmt(p["low_value"], dim["unit"])),
+            "两者相同",
+            "无法判断",
+        ]
+        return {
+            "question": question,
+            "options": options,
+            "answer": options[0],
+            "explain": "%s 的%s比 %s 多 %s，占成年人一天参考量的 %.1f%%。"
+            "同一个名字，份量不同，%s 就差这么多。"
+            % (
+                high["name"],
+                dim["label"],
+                low["name"],
+                _fmt(p["diff"], dim["unit"]),
+                p["gap_pct_of_day"],
+                dim["label"],
+            ),
+            "compare": {
+                "low_name": low["name"],
+                "low_value": _fmt(p["low_value"], dim["unit"]),
+                "high_name": high["name"],
+                "high_value": _fmt(p["high_value"], dim["unit"]),
+                "diff": _fmt(p["diff"], dim["unit"]),
+                "label": dim.get("short", dim["label"]),
+                "gap_pct": round(p["gap_pct_of_day"], 1),
+                "group_key": p["key"],
+            },
+        }
+
+    # --- shape 2: pick the extreme --------------------------------------
     pool = [f for f in foods if (f.get(dim_key) or 0) > 0]
     if len(pool) < 4:
         return None
     ranked = sorted(pool, key=lambda f: f[dim_key], reverse=True)
     top = ranked[0]
-    # distractors: spread across the range for a non-trivial question
     step = max(1, len(ranked) // 4)
     distractors = [ranked[i] for i in range(step, len(ranked), step)][:3]
     if len(distractors) < 3:
@@ -138,10 +192,10 @@ def _fmt(v, unit):
 
 
 # ------------------------------------------------------------------ rendering
-def radar_svg(points, size=300):
+def radar_svg(points, size=360):
     """Six-axis radar chart, pure SVG (no chart library)."""
     cx = cy = size / 2.0
-    radius = size / 2.0 - 42
+    radius = size / 2.0 - 46
     axes = kb.DIMENSIONS
     n = len(axes)
 
@@ -168,7 +222,7 @@ def radar_svg(points, size=300):
         )
         lx, ly = xy(i, 124)
         parts.append(
-            '<text x="%.1f" y="%.1f" fill="rgba(255,255,255,.72)" font-size="12" '
+            '<text x="%.1f" y="%.1f" fill="rgba(255,255,255,.72)" font-size="13" '
             'text-anchor="middle" dominant-baseline="middle">%s</text>'
             % (lx, ly, html.escape(dim["label"]))
         )
@@ -218,16 +272,16 @@ def build_certificate(foods, chosen, points, lessons_done, source):
 <title>麦麦营养学徒 · 结业证</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{width:1080px;height:1350px;font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;
+body{width:1080px;height:1590px;font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;
  background:linear-gradient(160deg,#12100E 0%,#1E1814 45%,#2A1F16 100%);color:#fff;overflow:hidden;position:relative}
 .card{position:relative;z-index:2;padding:60px 60px 52px;height:100%;display:flex;flex-direction:column;gap:0}
 .ribbon{position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#FFB64D,#FF7A29,#E4392B)}
 .kicker{font-size:21px;letter-spacing:6px;color:#FFB64D;margin-top:16px;font-weight:700}
 h1{font-size:60px;line-height:1.12;margin-top:14px;font-weight:800;letter-spacing:1px}
 .sub{font-size:24px;color:rgba(255,255,255,.62);margin-top:14px;line-height:1.6}
-.grid{display:flex;gap:30px;margin-top:34px;align-items:center}
-.radarbox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:24px;padding:16px;flex:0 0 auto}
-.stats{flex:1;display:flex;flex-direction:column;gap:16px}
+.grid{display:flex;gap:26px;margin-top:30px;align-items:center}
+.radarbox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:24px;padding:14px;flex:0 0 auto}
+.stats{flex:1;display:flex;flex-direction:column;gap:17px;max-width:560px}
 .bar-row{display:flex;align-items:center;gap:13px}
 .bar-label{width:60px;font-size:19px;color:rgba(255,255,255,.75);flex:0 0 auto}
 .bar-track{flex:1;height:12px;background:rgba(255,255,255,.09);border-radius:6px;overflow:hidden}
@@ -248,6 +302,12 @@ h1{font-size:60px;line-height:1.12;margin-top:14px;font-weight:800;letter-spacin
 .meals .t{font-size:23px;line-height:1.5;color:rgba(255,255,255,.88)}
 .tip{margin-top:22px;font-size:18px;line-height:1.65;color:rgba(242,237,231,.72);
  background:rgba(255,182,77,.09);border-left:3px solid #FFB64D;padding:15px 19px;border-radius:0 12px 12px 0}
+.recap{margin-top:22px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+ border-radius:18px;padding:18px 22px}
+.recap .rh{font-size:16px;color:rgba(255,255,255,.45);letter-spacing:2px;margin-bottom:12px;font-weight:700}
+.ri{font-size:17px;color:rgba(242,237,231,.8);line-height:1.9;display:flex;gap:12px;align-items:baseline}
+.rn{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;color:#FFB64D;
+ min-width:22px;flex:0 0 auto}
 .foot{margin-top:auto;padding-top:22px;display:flex;justify-content:space-between;align-items:flex-end;
  border-top:1px solid rgba(255,255,255,.1);font-size:15px;color:rgba(255,255,255,.42);gap:30px;line-height:1.7}
 .foot .id{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;letter-spacing:1px;white-space:nowrap}
@@ -273,6 +333,15 @@ h1{font-size:60px;line-height:1.12;margin-top:14px;font-weight:800;letter-spacin
   <div class="badges">__BADGES__</div>
   <div class="meals"><div class="h">这一餐吃了什么</div><div class="t">__MEALS__</div></div>
   <div class="tip">__TIP__</div>
+  <div class="recap">
+    <div class="rh">这一趟你学到的六件事</div>
+    <div class="ri"><span class="rn">01</span>能量是花多少的问题，份量一变就差一大截</div>
+    <div class="ri"><span class="rn">02</span>多一层肉，蛋白质和钠一起涨，不只是口感</div>
+    <div class="ri"><span class="rn">03</span>脂肪的能量密度是糖的两倍多，但它决定口感</div>
+    <div class="ri"><span class="rn">04</span>甜饮的碳水几乎全是糖，而且完全尝不出来</div>
+    <div class="ri"><span class="rn">05</span>钠藏在酱汁和面包里，是最容易超的那一项</div>
+    <div class="ri"><span class="rn">06</span>奶类饮品的钙比多数汉堡高得多，别忽略它</div>
+  </div>
   <div class="foot">
     <div>数据来源：__SOURCE__<br>营养素参考量采用中国居民膳食营养素参考摄入量，仅供科普参考，不构成医疗或营养建议</div>
     <div class="id">__CERTID__</div>
@@ -326,24 +395,59 @@ def _cert_id(foods):
 def build_lesson_page(foods, source):
     """Interactive course page: 6 lessons, each with a data-derived quiz."""
     lessons = []
+    used_groups = set()
     for c in CURRICULUM:
-        quiz = build_quiz(foods, c["dimension"])
+        quiz = build_quiz(foods, c["dimension"], avoid_keys=used_groups)
         if not quiz:
             continue
-        example = sorted(
-            [f for f in foods if (f.get(c["dimension"]) or 0) > 0],
-            key=lambda f: f[c["dimension"]],
-            reverse=True,
-        )[:3]
+        cmp_ = quiz.get("compare")
+        if cmp_ and cmp_.get("group_key"):
+            used_groups.add(cmp_["group_key"])
+
+        # Teaching material: a real A/B pair from the live menu. Showing two
+        # comparable items side by side teaches far more than a bare ranking,
+        # because only one variable changed.
         cards = []
-        for f in example:
-            prof = kb.food_profile(f)
-            v = prof[c["dimension"]]
+        compare = quiz.get("compare")
+        if compare:
             cards.append(
-                '<div class="mini"><div class="mn">%s</div><div class="mv">%s</div>'
-                '<div class="mp">占全天参考量 %.0f%%</div></div>'
-                % (html.escape(f["name"]), _fmt(v["value"], v["unit"]), v["pct_of_day"])
+                '<div class="mini side"><div class="mn">%s</div><div class="mv">%s</div>'
+                '<div class="mp">%s · 小份</div></div>'
+                % (
+                    html.escape(compare["low_name"]),
+                    html.escape(compare["low_value"]),
+                    html.escape(compare["label"]),
+                )
             )
+            cards.append(
+                '<div class="mini side hi"><div class="mn">%s</div><div class="mv">%s</div>'
+                '<div class="mp">%s · 大份</div></div>'
+                % (
+                    html.escape(compare["high_name"]),
+                    html.escape(compare["high_value"]),
+                    html.escape(compare["label"]),
+                )
+            )
+            cards.append(
+                '<div class="mini diff"><div class="mn">差值</div><div class="mv">%s</div>'
+                '<div class="mp">相当于全天参考量的 %.1f%%</div></div>'
+                % (html.escape(compare["diff"]), quiz.get("gap_pct", 0.0))
+            )
+        else:
+            example = sorted(
+                [f for f in foods if (f.get(c["dimension"]) or 0) > 0],
+                key=lambda f: f[c["dimension"]],
+                reverse=True,
+            )[:3]
+            for f in example:
+                prof = kb.food_profile(f)
+                v = prof[c["dimension"]]
+                cards.append(
+                    '<div class="mini"><div class="mn">%s</div><div class="mv">%s</div>'
+                    '<div class="mp">占全天参考量 %.0f%%</div></div>'
+                    % (html.escape(f["name"]), _fmt(v["value"], v["unit"]), v["pct_of_day"])
+                )
+
         lessons.append(
             {
                 "id": c["id"],
@@ -393,6 +497,10 @@ h1{font-size:38px;margin:12px 0 10px;font-weight:800}
 .minis{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .mini{flex:1;min-width:150px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
  border-radius:12px;padding:13px 15px}
+.mini.side{min-width:190px}
+.mini.hi{background:rgba(255,182,77,.1);border-color:rgba(255,182,77,.4)}
+.mini.diff{background:rgba(255,138,91,.08);border-color:rgba(255,138,91,.3);min-width:150px}
+.mini.diff .mv{color:#FF8A5B}
 .mn{font-size:16px;font-weight:700}
 .mv{font-size:20px;color:#FFB64D;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums}
 .mp{font-size:13px;color:rgba(242,237,231,.5);margin-top:3px}

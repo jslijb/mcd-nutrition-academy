@@ -12,7 +12,7 @@
 3. 存到环境变量（**不要**写进任何要提交的文件）：
 
 ```bash
-export MCD_MCP_TOKEN=你的Token
+export MDN_MCP_KEY=你的Token
 ```
 
 拿到后先验证一下能不能取到真实数据：
@@ -84,7 +84,7 @@ ls README.md CONTEST_DECLARATION.md MCP_INTEGRATION.md mcp-config.example.json w
 - [ ] 仓库是**公开**的
 - [ ] 五个必交文件都在，文件名一字未改
 - [ ] `CONTEST_DECLARATION.md` 与官方原文一致（已校验 sha256）
-- [ ] `mcp-config.example.json` 里只有 `${MCD_MCP_TOKEN}` 占位符，无真实 Token
+- [ ] `mcp-config.example.json` 里只有 `${MDN_MCP_KEY}` 占位符，无真实 Token
 - [ ] 项目**真实使用**了麦当劳 MCP（`MCP_INTEGRATION.md` 有完整调用流程）
 - [ ] `workbuddy.md` 已提交（拿 3000 积分的门票，漏了等于白做）
 - [ ] README 首屏有图、有三步跑起来的说明
