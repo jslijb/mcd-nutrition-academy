@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>麦麦营养学徒 · 六节课</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;background:#141110;color:#F2EDE7;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding:40px 22px 80px}
+.hero{background:linear-gradient(140deg,#241C15,#2E2318);border:1px solid rgba(255,182,77,.22);
+ border-radius:22px;padding:32px 30px;margin-bottom:28px}
+.kick{font-size:14px;letter-spacing:5px;color:#FFB64D;font-weight:700}
+h1{font-size:38px;margin:12px 0 10px;font-weight:800}
+.hero p{color:rgba(242,237,231,.66);font-size:16px}
+.prog{height:8px;background:rgba(255,255,255,.08);border-radius:5px;margin-top:20px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#FFB64D,#FF7A29);width:0;transition:width .35s}
+.ptxt{font-size:14px;color:rgba(242,237,231,.55);margin-top:9px}
+.ptxt .certlink{color:#FFB64D;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,182,77,.45);padding-bottom:1px}
+.ptxt .certlink:hover{color:#FF7A29;border-bottom-color:#FF7A29}
+.lesson{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:26px 26px 24px;margin-bottom:20px}
+.lesson.locked{opacity:.42}
+.lh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.num{width:32px;height:32px;border-radius:50%;background:#FFB64D;color:#241C15;font-weight:800;
+ display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+.lh h2{font-size:22px;font-weight:700}
+.lk{font-size:13px;padding:4px 11px;border-radius:999px;margin-left:auto;
+ background:rgba(255,255,255,.1);color:rgba(242,237,231,.7)}
+.lk.ok{background:rgba(120,200,120,.18);color:#9BD89B}
+.lk.no{background:rgba(255,138,91,.16);color:#FFB08A}
+.concept{background:rgba(255,182,77,.08);border-left:3px solid #FFB64D;padding:13px 16px;
+ border-radius:0 10px 10px 0;font-size:15px;color:rgba(242,237,231,.85);margin-bottom:14px}
+.teach{font-size:15px;color:rgba(242,237,231,.62);margin-bottom:16px}
+.minis{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.mini{flex:1;min-width:150px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+ border-radius:12px;padding:13px 15px}
+.mini.side{min-width:190px}
+.mini.hi{background:rgba(255,182,77,.1);border-color:rgba(255,182,77,.4)}
+.mini.diff{background:rgba(255,138,91,.08);border-color:rgba(255,138,91,.3);min-width:150px}
+.mini.diff .mv{color:#FF8A5B}
+.mn{font-size:16px;font-weight:700}
+.mv{font-size:20px;color:#FFB64D;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums}
+.mp{font-size:13px;color:rgba(242,237,231,.5);margin-top:3px}
+.q{background:rgba(0,0,0,.22);border-radius:13px;padding:18px}
+.qt{font-size:17px;font-weight:700;margin-bottom:13px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{text-align:left;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);
+ color:#F2EDE7;padding:12px 16px;border-radius:10px;font-size:15px;cursor:pointer;
+ font-family:inherit;transition:.16s}
+.opt:hover:not(:disabled){background:rgba(255,182,77,.13);border-color:rgba(255,182,77,.45)}
+.opt:disabled{cursor:default}
+.opt.right{background:rgba(120,200,120,.2);border-color:#7CC87C;color:#B6E8B6}
+.opt.wrong{background:rgba(255,90,70,.16);border-color:#E4634A;color:#FFB4A0}
+.expl{margin-top:13px;font-size:14px;color:rgba(242,237,231,.72);padding:12px 15px;
+ background:rgba(255,255,255,.045);border-radius:10px;display:none}
+.expl.show{display:block}
+.next{margin-top:16px;width:100%;padding:13px;background:linear-gradient(90deg,#FFB64D,#FF7A29);
+ color:#241C15;border:none;border-radius:11px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;display:none}
+.next.show{display:block}
+footer{margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1);
+ font-size:13px;color:rgba(242,237,231,.4);line-height:1.8}
+</style></head><body><div class="wrap">
+<div class="hero">
+  <div class="kick">MCD NUTRITION ACADEMY</div>
+  <h1>麦麦营养学徒 · 六节课</h1>
+  <p>用麦当劳真实菜单的六维营养数据当教材。每课一个知识点，答对一题解锁下一课，
+     全部答完生成一张可分享的结业证。</p>
+  <div class="prog"><i id="pb"></i></div>
+  <div class="ptxt" id="pt">已完成 0 / 6 课</div>
+</div>
+<div id="lessons"></div>
+<footer>
+  数据来源：麦当劳 MCP list-nutrition-foods 实时数据。<br>
+  营养素参考量采用《中国居民膳食营养素参考摄入量》，仅供营养科普参考，不构成医疗、营养或其他专业建议。<br>
+  餐品信息以麦当劳官方渠道实时结果为准。
+</footer>
+</div>
+<script>
+const LESSONS = [{"id": "energy", "title": "第一课 · 能量：一份套餐能装下多少电费", "concept": "能量不是好坏，是花多少的问题。同一份食物，份量不同，能量能差出一整顿正餐。把千卡放在'一天 2250 千卡'这个分母上看，才有意义。", "teach": "本课用真实菜单里的两组对照做实验：只改份量，其他不变，看能量怎么变。", "cards": ["<div class=\"mini side\"><div class=\"mn\">芝士安格斯厚牛堡</div><div class=\"mv\">696 kcal</div><div class=\"mp\">能量 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">芝士双层安格斯厚牛堡</div><div class=\"mv\">1003 kcal</div><div class=\"mp\">能量 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">307 kcal</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "芝士安格斯厚牛堡 和 芝士双层安格斯厚牛堡 只差一个变量，能量差多少？", "options": ["芝士双层安格斯厚牛堡（1003 kcal）", "芝士安格斯厚牛堡（696 kcal）", "两者相同", "无法判断"], "answer": "芝士双层安格斯厚牛堡（1003 kcal）", "explain": "芝士双层安格斯厚牛堡 的每日能量比 芝士安格斯厚牛堡 多 307 kcal，占成年人一天参考量的 13.6%。同一个名字，份量不同，每日能量 就差这么多。", "compare": {"low_name": "芝士安格斯厚牛堡", "low_value": "696 kcal", "high_name": "芝士双层安格斯厚牛堡", "high_value": "1003 kcal", "diff": "307 kcal", "label": "能量", "gap_pct": 13.6, "group_key": "芝士安格斯厚牛堡"}}}, {"id": "protein", "title": "第二课 · 蛋白质：身体的建材", "concept": "蛋白质是长身体、修身体的原材料。多一层肉饼，多的不只是口感，更是实实在在的蛋白质——这一点在真实数据里非常明显。", "teach": "看蛋白质别只看绝对克数，同时看它占总能量的比例：占比高的那份更抗饿。", "cards": ["<div class=\"mini side\"><div class=\"mn\">培根安格斯厚牛堡</div><div class=\"mv\">34.0 g</div><div class=\"mp\">蛋白质 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">培根双层安格斯厚牛堡</div><div class=\"mv\">55.0 g</div><div class=\"mp\">蛋白质 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">21.0 g</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "培根安格斯厚牛堡 和 培根双层安格斯厚牛堡 只差一个变量，蛋白质差多少？", "options": ["培根双层安格斯厚牛堡（55.0 g）", "培根安格斯厚牛堡（34.0 g）", "两者相同", "无法判断"], "answer": "培根双层安格斯厚牛堡（55.0 g）", "explain": "培根双层安格斯厚牛堡 的每日蛋白质比 培根安格斯厚牛堡 多 21.0 g，占成年人一天参考量的 32.3%。同一个名字，份量不同，每日蛋白质 就差这么多。", "compare": {"low_name": "培根安格斯厚牛堡", "low_value": "34.0 g", "high_name": "培根双层安格斯厚牛堡", "high_value": "55.0 g", "diff": "21.0 g", "label": "蛋白质", "gap_pct": 32.3, "group_key": "培根安格斯厚牛堡"}}}, {"id": "fat", "title": "第三课 · 脂肪：能量密度与口感", "concept": "脂肪的能量密度是蛋白和碳水的一倍多。同样体积，脂肪多的那份热量更高。但脂肪也决定口感，所以'减脂'从来不等于'零脂肪'。", "teach": "算脂肪占比：脂肪克数 × 9 千焦，除以总能量，看它在能量结构里占几成。", "cards": ["<div class=\"mini side\"><div class=\"mn\">迷你薯条</div><div class=\"mv\">4.0 g</div><div class=\"mp\">脂肪 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">大薯条</div><div class=\"mv\">16.0 g</div><div class=\"mp\">脂肪 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">12.0 g</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "迷你薯条 和 大薯条 只差一个变量，脂肪差多少？", "options": ["大薯条（16.0 g）", "迷你薯条（4.0 g）", "两者相同", "无法判断"], "answer": "大薯条（16.0 g）", "explain": "大薯条 的每日脂肪比 迷你薯条 多 12.0 g，占成年人一天参考量的 20.0%。同一个名字，份量不同，每日脂肪 就差这么多。", "compare": {"low_name": "迷你薯条", "low_value": "4.0 g", "high_name": "大薯条", "high_value": "16.0 g", "diff": "12.0 g", "label": "脂肪", "gap_pct": 20.0, "group_key": "薯条"}}}, {"id": "carb", "title": "第四课 · 碳水：最直接的燃料", "concept": "碳水是身体最省事的燃料。甜饮的碳水几乎全是糖，而且喝的时候完全尝不出——这是最'隐形'的一类碳水。", "teach": "把碳水和你一天需要的 275 克放在一起看，比单看'克'直观得多。", "cards": ["<div class=\"mini side\"><div class=\"mn\">可乐小杯</div><div class=\"mv\">26.0 g</div><div class=\"mp\">碳水 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">可乐大杯</div><div class=\"mv\">55.0 g</div><div class=\"mp\">碳水 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">29.0 g</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "可乐小杯 和 可乐大杯 只差一个变量，碳水差多少？", "options": ["可乐大杯（55.0 g）", "可乐小杯（26.0 g）", "两者相同", "无法判断"], "answer": "可乐大杯（55.0 g）", "explain": "可乐大杯 的每日碳水比 可乐小杯 多 29.0 g，占成年人一天参考量的 10.5%。同一个名字，份量不同，每日碳水 就差这么多。", "compare": {"low_name": "可乐小杯", "low_value": "26.0 g", "high_name": "可乐大杯", "high_value": "55.0 g", "diff": "29.0 g", "label": "碳水", "gap_pct": 10.5, "group_key": "可乐杯"}}}, {"id": "sodium", "title": "第五课 · 钠：藏在酱料里的那一项", "concept": "钠是麦当劳餐品里最容易超标的营养素。它主要来自酱汁、腌渍和面包，吃的时候常常完全尝不出来。多一层肉，酱也更多，钠也跟着涨。", "teach": "钠是'限'的维度：一餐超过全天参考量的三分之一就该留意了。", "cards": ["<div class=\"mini side\"><div class=\"mn\">原味板烧鸡腿麦满分</div><div class=\"mv\">611 mg</div><div class=\"mp\">钠 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">双层原味板烧鸡腿麦满分</div><div class=\"mv\">984 mg</div><div class=\"mp\">钠 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">373 mg</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "原味板烧鸡腿麦满分 和 双层原味板烧鸡腿麦满分 只差一个变量，钠差多少？", "options": ["双层原味板烧鸡腿麦满分（984 mg）", "原味板烧鸡腿麦满分（611 mg）", "两者相同", "无法判断"], "answer": "双层原味板烧鸡腿麦满分（984 mg）", "explain": "双层原味板烧鸡腿麦满分 的每日钠比 原味板烧鸡腿麦满分 多 373 mg，占成年人一天参考量的 24.9%。同一个名字，份量不同，每日钠 就差这么多。", "compare": {"low_name": "原味板烧鸡腿麦满分", "low_value": "611 mg", "high_name": "双层原味板烧鸡腿麦满分", "high_value": "984 mg", "diff": "373 mg", "label": "钠", "gap_pct": 24.9, "group_key": "板烧鸡腿麦满分"}}}, {"id": "calcium", "title": "第六课 · 钙：骨头和牙齿的原料", "concept": "钙是少数'越多越好'的营养素，在常见餐品里却常常缺位。有意思的是：奶类饮品、甜筒的钙含量，反而比多数汉堡高得多。", "teach": "钙是'需'的维度：看一餐能贡献多少，而不是看它有没有超标。", "cards": ["<div class=\"mini side\"><div class=\"mn\">冰燕麦奶小杯</div><div class=\"mv\">288 mg</div><div class=\"mp\">钙 · 小份</div></div>", "<div class=\"mini side hi\"><div class=\"mn\">冰燕麦奶大杯</div><div class=\"mv\">525 mg</div><div class=\"mp\">钙 · 大份</div></div>", "<div class=\"mini diff\"><div class=\"mn\">差值</div><div class=\"mv\">237 mg</div><div class=\"mp\">相当于全天参考量的 0.0%</div></div>"], "quiz": {"question": "冰燕麦奶小杯 和 冰燕麦奶大杯 只差一个变量，钙差多少？", "options": ["冰燕麦奶大杯（525 mg）", "冰燕麦奶小杯（288 mg）", "两者相同", "无法判断"], "answer": "冰燕麦奶大杯（525 mg）", "explain": "冰燕麦奶大杯 的每日钙比 冰燕麦奶小杯 多 237 mg，占成年人一天参考量的 29.6%。同一个名字，份量不同，每日钙 就差这么多。", "compare": {"low_name": "冰燕麦奶小杯", "low_value": "288 mg", "high_name": "冰燕麦奶大杯", "high_value": "525 mg", "diff": "237 mg", "label": "钙", "gap_pct": 29.6, "group_key": "冰燕麦奶杯"}}}];
+const done = new Set();
+const box = document.getElementById('lessons');
+LESSONS.forEach((L,i)=>{
+  const el = document.createElement('div');
+  el.className = 'lesson' + (i>0?' locked':'');
+  const opts = L.quiz.options.map(o=>`<button class="opt" data-n="${o}">${o}</button>`).join('');
+  el.innerHTML = `
+    <div class="lh"><div class="num">${i+1}</div><h2>${L.title}</h2>
+      <span class="lk ${i===0?'ok':'no'}">${i===0?'已解锁':'待解锁'}</span></div>
+    <div class="concept">${L.concept}</div>
+    <div class="teach">${L.teach}</div>
+    <div class="minis">${L.cards.join('')}</div>
+    <div class="q"><div class="qt">${L.quiz.question}</div>
+      <div class="opts">${opts}</div>
+      <div class="expl" id="e${i}"></div></div>
+    <button class="next" id="n${i}">解锁下一课</button>`;
+  box.appendChild(el);
+
+  el.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    if(done.has(L.id)) return;
+    const ok = b.dataset.n === L.quiz.answer;
+    el.querySelectorAll('.opt').forEach(x=>{
+      x.disabled=true;
+      if(x.dataset.n===L.quiz.answer) x.classList.add('right');
+    });
+    if(!ok){ b.classList.add('wrong');
+      el.querySelector('#e'+i).innerHTML = '再想想～ 正确答案已标绿。'+L.quiz.explain; }
+    else { el.querySelector('#e'+i).innerHTML = '答对了！'+L.quiz.explain; }
+    el.querySelector('#e'+i).classList.add('show');
+    if(ok){
+      done.add(L.id);
+      el.querySelector('.lk').className='lk ok';
+      el.querySelector('.lk').textContent='已通关';
+      const nxt=el.querySelector('#n'+i); nxt.classList.add('show');
+      nxt.addEventListener('click',()=>{
+        if(nxt.dataset.go) return;
+        const all=el.parentElement.querySelectorAll('.lesson');
+        const me=Array.from(all).indexOf(el);
+        if(me+1<all.length){ all[me+1].classList.remove('locked');
+          all[me+1].querySelector('.lk').className='lk ok';
+          all[me+1].querySelector('.lk').textContent='已解锁';
+          all[me+1].scrollIntoView({behavior:'smooth',block:'center'}); }
+        nxt.dataset.go='1'; nxt.textContent='已解锁下一课 →';
+        update();
+      });
+    }
+    update();
+  }));
+});
+function update(){
+  const pct = Math.round(done.size/LESSONS.length*100);
+  document.getElementById('pb').style.width = pct+'%';
+  const pt=document.getElementById('pt');
+  if(done.size===LESSONS.length){
+    pt.innerHTML='已完成 '+done.size+' / '+LESSONS.length+' 课 · <a class="certlink" href="certificate.html">🎉 生成你的结业证 →</a>';
+  }else{
+    pt.textContent='已完成 '+done.size+' / '+LESSONS.length+' 课';
+  }
+}
+update();
+</script></body></html>

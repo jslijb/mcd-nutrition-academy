@@ -1,23 +1,6 @@
-# Python
+# 本地临时产物
+assets/_frames/
+assets/_demo_video/
 __pycache__/
-*.py[cod]
-.venv/
-venv/
-
-# Node
+*.pyc
 node_modules/
-
-# Local data & output (regenerate with scripts/collect.py + scripts/build_course.py)
-data/nutrition.json
-data/raw/
-out/
-
-# Secrets -- never commit a real token
-.env
-.env.*
-*.token
-mcp-config.json
-
-# OS
-.DS_Store
-Thumbs.db
