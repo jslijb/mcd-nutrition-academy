@@ -392,6 +392,63 @@ def _cert_id(foods):
     return "MCD-%s" % h.hexdigest()[:8].upper()
 
 
+def build_index_page(foods, source):
+    """Landing page: what this is, then straight into the course."""
+    live = "实时营养数据" if source == "live" else "内置演示数据"
+    html_doc = """<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>麦麦营养学徒 · 六节课读懂六个营养数字</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;background:#141110;color:#F2EDE7;line-height:1.75;
+ min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.wrap{max-width:720px;width:100%}
+.hero{background:linear-gradient(140deg,#241C15,#2E2318);border:1px solid rgba(255,182,77,.22);
+ border-radius:24px;padding:40px 34px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.kick{font-size:14px;letter-spacing:5px;color:#FFB64D;font-weight:700}
+h1{font-size:40px;line-height:1.22;margin:14px 0 16px;font-weight:800}
+.hero p{color:rgba(242,237,231,.7);font-size:16px}
+.why{margin-top:26px;border-left:3px solid #FFB64D;padding:4px 0 4px 16px;color:rgba(242,237,231,.62);font-size:15px}
+.cta{display:block;margin-top:30px;background:linear-gradient(135deg,#FFB64D,#FF7A29);color:#241C15;text-decoration:none;
+ text-align:center;padding:17px 24px;border-radius:999px;font-size:19px;font-weight:800;
+ box-shadow:0 10px 28px rgba(255,122,41,.32);transition:.18s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(255,122,41,.42)}
+.meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
+.tag{font-size:13px;padding:7px 14px;border-radius:999px;background:rgba(255,182,77,.12);
+ border:1px solid rgba(255,182,77,.32);color:#FFCE8A}
+.tag.ghost{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:rgba(242,237,231,.6)}
+.foot{margin-top:26px;text-align:center;font-size:13px;color:rgba(242,237,231,.42)}
+.foot a{color:rgba(255,182,77,.85);text-decoration:none;border-bottom:1px solid rgba(255,182,77,.35)}
+</style></head><body>
+<div class="wrap">
+<div class="hero">
+  <div class="kick">1024 造物挑战</div>
+  <h1>麦麦营养学徒<br>六节课读懂六个营养数字</h1>
+  <p>麦当劳官方营养计算器给你的是六个数字，大多数人看不懂就关掉了页面。
+  这里把它们做成六节可闯关的课——每课用菜单里真实的「同一个东西、不同份量」做对照实验，
+  答对解锁下一课，六课通关生成一张六轴雷达图结业证。</p>
+  <div class="why">它不是卡路里计算器。它不告诉你「超标了」，而是让你亲眼看见：<b>只差一个变量，差了多少。</b></div>
+  <a class="cta" href="lesson.html">开始第一课 →</a>
+  <div class="meta">
+    <span class="tag">六节课 · 六道对照实验</span>
+    <span class="tag">__SOURCE_LABEL__</span>
+    <span class="tag ghost">__FOOD_COUNT__ 个真实餐品</span>
+    <span class="tag ghost">只读调用 MCP</span>
+  </div>
+</div>
+<div class="foot">已通关的同学可以直接看 <a href="certificate.html">结业证</a> ·
+  <a href="https://github.com/jslijb/mcd-nutrition-academy">项目源码</a></div>
+</div>
+</body></html>"""
+    # NOTE: the template contains CSS percentage signs, so %-formatting is not
+    # safe here. Use explicit placeholders and str.replace().
+    return (
+        html_doc.replace("__SOURCE_LABEL__", live)
+        .replace("__FOOD_COUNT__", str(len(foods)))
+    )
+
+
 def build_lesson_page(foods, source):
     """Interactive course page: 6 lessons, each with a data-derived quiz."""
     lessons = []
@@ -481,6 +538,8 @@ h1{font-size:38px;margin:12px 0 10px;font-weight:800}
 .prog{height:8px;background:rgba(255,255,255,.08);border-radius:5px;margin-top:20px;overflow:hidden}
 .prog i{display:block;height:100%;background:linear-gradient(90deg,#FFB64D,#FF7A29);width:0;transition:width .35s}
 .ptxt{font-size:14px;color:rgba(242,237,231,.55);margin-top:9px}
+.ptxt .certlink{color:#FFB64D;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,182,77,.45);padding-bottom:1px}
+.ptxt .certlink:hover{color:#FF7A29;border-bottom-color:#FF7A29}
 .lesson{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:26px 26px 24px;margin-bottom:20px}
 .lesson.locked{opacity:.42}
 .lh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
@@ -592,8 +651,12 @@ LESSONS.forEach((L,i)=>{
 function update(){
   const pct = Math.round(done.size/LESSONS.length*100);
   document.getElementById('pb').style.width = pct+'%';
-  document.getElementById('pt').textContent = `已完成 ${done.size} / ${LESSONS.length} 课`+
-    (done.size===LESSONS.length ? ' · 可以生成结业证了 🎉' : '');
+  const pt=document.getElementById('pt');
+  if(done.size===LESSONS.length){
+    pt.innerHTML='已完成 '+done.size+' / '+LESSONS.length+' 课 · <a class="certlink" href="certificate.html">🎉 生成你的结业证 →</a>';
+  }else{
+    pt.textContent='已完成 '+done.size+' / '+LESSONS.length+' 课';
+  }
 }
 update();
 </script></body></html>"""
@@ -606,6 +669,19 @@ def render_png(html_path, png_path, width=1080, height=1350):
     node = os.environ.get("NODE_BIN") or "node"
     renderer = os.path.join(HERE, "render_png.js")
     env = dict(os.environ)
+    # Playwright usually lives in a global/managed node_modules dir. If the
+    # caller has not set NODE_PATH, try the common locations so the render
+    # works without extra setup.
+    if "NODE_PATH" not in env:
+        candidates = [
+            os.path.join(os.path.expanduser("~"), ".workbuddy", "binaries", "node",
+                         "workspace", "node_modules"),
+            os.path.join(os.path.dirname(HERE), "node_modules"),
+        ]
+        for c in candidates:
+            if os.path.isdir(c):
+                env["NODE_PATH"] = c
+                break
     try:
         subprocess.run(
             [node, renderer, os.path.abspath(html_path), os.path.abspath(png_path),
@@ -642,7 +718,9 @@ def main():
         f.write(build_lesson_page(foods, source))
     with open(os.path.join(OUT, "certificate.html"), "w", encoding="utf-8") as f:
         f.write(build_certificate(foods, chosen, points, lessons_done, source))
-    print("wrote out/lesson.html and out/certificate.html")
+    with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
+        f.write(build_index_page(foods, source))
+    print("wrote out/index.html, out/lesson.html and out/certificate.html")
 
     render_png(
         os.path.abspath(os.path.join(OUT, "certificate.html")),

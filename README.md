@@ -6,6 +6,12 @@
 [![MCP](https://img.shields.io/badge/MCP-McDonald's%20China-orange.svg)](https://github.com/M-China/mcd-mcp-server)
 [![Contest](https://img.shields.io/badge/Contest-1024%20%E9%80%A0%E7%89%A9%E6%8C%91%E6%88%98-red.svg)](https://github.com/M-China/mcd-developer-innovation-challenge)
 
+## ▶️ 在线体验（无需安装、无需 Token）
+
+**https://mcd-nutrition-academy.app.workbuddy.host/?sharecode=75P7S2RANI**
+
+打开就是六节课。答对解锁下一课，六课通关生成结业证雷达图。
+
 ---
 
 ## 一句话说清它是什么
@@ -74,6 +80,7 @@ python3 scripts/build_course.py
 
 | 文件 | 说明 |
 |---|---|
+| `out/index.html` | 入口页（说明这是什么 + 开始上课按钮），单文件 |
 | `out/lesson.html` | 六节可闯关的课程页，单文件，直接用浏览器打开 |
 | `out/certificate.html` | 结业证（含六轴雷达图），单文件 |
 | `out/certificate.png` | 结业证图片（需要 Playwright） |
